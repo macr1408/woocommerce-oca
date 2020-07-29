@@ -146,6 +146,9 @@ function woo_oca_get_address($order)
         $shipping_line_1 = trim($order->get_billing_address_1());
         $shipping_line_2 = trim($order->get_billing_address_2());
     }
+	
+    $shipping_line_1 = woo_oca_remove_accents($shipping_line_1);
+    $shipping_line_2 = woo_oca_remove_accents($shipping_line_2);
 
     if (empty($shipping_line_2)) {
         // Av. Mexico 430, Piso 4 B
@@ -197,8 +200,13 @@ function woo_oca_get_address($order)
         $street_number = trim($res[3]);
         return array('street' => $street_name, 'number' => $street_number, 'floor' => $floor, 'apartment' => $apartment);
     }
-
-    return array('street' => $street_name, 'number' => $street_number, 'floor' => $floor, 'apartment' => $apartment);
+	
+    // Fallback
+    $fallback = $shipping_line_1;
+    if(empty($floor) && empty($apartment)){
+        $fallback .= ' ' . $shipping_line_2;
+    }
+    return array('street' => $fallback, 'number' => $street_number, 'floor' => $floor, 'apartment' => $apartment);
 }
 
 function woo_oca_get_floor_and_apt($fl_apt)
@@ -262,4 +270,12 @@ function woo_oca_get_floor_and_apt($fl_apt)
 
     //I give up. I can't make sense of it. We'll save it in case it's something useful 
     return array('street' => $street_name, 'number' => $street_number, 'floor' => $fl_apt, 'apartment' => $apartment);
+}
+
+function woo_oca_remove_accents($str, $charset = 'utf-8') {
+    $str = htmlentities($str, ENT_NOQUOTES, $charset);
+    $str = preg_replace('#&([A-za-z])(?:acute|cedil|caron|circ|grave|orn|ring|slash|th|tilde|uml);#', '\1', $str);
+    $str = preg_replace('#&([A-za-z]{2})(?:lig);#', '\1', $str);
+    $str = preg_replace('#&[^;]+;#', '', $str);
+    return $str;
 }
