@@ -205,6 +205,9 @@ function woo_oca_check_if_oca_selected($method, $index)
     // Print the select field only in the shipping method needed
     $current_method = $method->get_id();
     $current_method = explode(" ", $current_method);
+    if (empty($current_method[1])) {
+        return;
+    }
     $current_operativa = str_replace('~', '"', $current_method[1]);
     $current_operativa = unserialize($current_operativa);
 
@@ -212,6 +215,9 @@ function woo_oca_check_if_oca_selected($method, $index)
     $chosen_methods = WC()->session->get('chosen_shipping_methods');
     $chosen_shipping = $chosen_methods[0];
     $chosen_shipping = explode(" ", $chosen_shipping);
+    if (empty($chosen_shipping[1])) {
+        return;
+    }
     $chosen_operativa = $chosen_shipping[1];
     $chosen_operativa = str_replace('~', '"', $chosen_operativa);
     $chosen_operativa = unserialize($chosen_operativa);

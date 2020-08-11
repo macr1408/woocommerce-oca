@@ -67,7 +67,8 @@ register_activation_hook(__FILE__, 'woo_oca_install');
 
 add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'woo_oca_create_settings_link');
 
-function woo_oca_create_settings_link($links){
+function woo_oca_create_settings_link($links)
+{
 	$links[] = '<a href="' . esc_url(get_admin_url(null, 'options-general.php?page=oca_settings')) . '">Configuración</a>';
 	return $links;
 }

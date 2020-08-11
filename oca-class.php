@@ -184,7 +184,7 @@ function woo_oca_envios_oca_init()
                         }
 
                         // Set price
-                        if (!isset($tarifa[0]['error'])) {
+                        if (!isset($tarifa[0]['error']) && isset($tarifa[0]['Total'])) {
                             if ($contrareembolso) {
                                 $precio = number_format($tarifa[0]['Total'], 2);
                                 $this->addRate(0, $nombre . ' (Pago a destino' . ($precio == 0 ? ')' : ' - $' . $precio . ')'), serialize($operativa));
