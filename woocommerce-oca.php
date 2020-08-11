@@ -2,11 +2,11 @@
 
 /*
 Plugin Name: Woocommerce OCA
-Plugin URI: http://ecomerciar.com
+Plugin URI: https://macr1408.xyz
 Description: Integración de oca para realizar envíos a través de la plataforma WooCommerce.
 Version: 2.0.4
-Author: Ecomerciar
-Author URI: http://ecomerciar.com
+Author: Marcos
+Author URI: https://macr1408.xyz
 License: GPL2
  */
 
