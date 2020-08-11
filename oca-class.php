@@ -193,7 +193,7 @@ function woo_oca_envios_oca_init()
                                 $this->addRate($tarifa[0]['Total'], $nombre, serialize($operativa));
                             }
                         } else {
-                            $this->logger->error("Hubo un error al calcular el precio del envío: " . $tarifa[0]['error'], unserialize(OCA_LOGGER_CONTEXT));
+                            //$this->logger->error("Hubo un error al calcular el precio del envío: " . $tarifa[0]['error'], unserialize(OCA_LOGGER_CONTEXT));
                         }
                     }
                 }
