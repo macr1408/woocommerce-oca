@@ -10,7 +10,7 @@ if (!defined('ABSPATH')) {
  * Function generar_envio_oca
  *
  */
-add_action('woocommerce_order_status_completed', 'woo_oca_generar_envio_oca');
+add_action('woocommerce_order_status_processing', 'woo_oca_generar_envio_oca');
 function woo_oca_generar_envio_oca($order_id)
 {
     $logger = wc_get_logger();
@@ -33,10 +33,42 @@ function woo_oca_generar_envio_oca($order_id)
             $order->update_meta_data('ordenretiro_oca', $ordenretiro);
             $order->save();
             $logger->debug('Envío Realizado con exito. Nro. Envio: ' . $numeroenvio . ' | Orden retiro: ' . $ordenretiro, unserialize(OCA_LOGGER_CONTEXT));
+            woo_oca_crear_pdf_envio($ordenretiro);
         } else {
             $logger->error('Error al realizar envío: ' . $data[0]['error'], unserialize(OCA_LOGGER_CONTEXT));
         }
     }
+}
+
+function woo_oca_crear_pdf_envio($ordenretiro)
+{
+    $post_data = array(
+        'idOrdenRetiro' => $ordenretiro,
+        'nroEnvio' => '',
+        'logisticaInversa' => 'false'
+    );
+    $url = 'http://webservice.oca.com.ar/oep_tracking/Oep_Track.asmx/GetPdfDeEtiquetasPorOrdenOrNumeroEnvio';
+    $response = wp_remote_get($url, array(
+        'method' => 'GET',
+        'timeout' => 45,
+        'redirection' => 5,
+        'httpversion' => '1.0',
+        'blocking' => true,
+        'headers' => array(),
+        'body' => $post_data,
+        'cookies' => array()
+    ));
+    $response = $response['http_response']->get_response_object()->body;
+    $response = explode(">", $response)[2];
+    $response = explode("<", $response)[0];
+
+    $pdf_codificado = $response;
+    $pdf_decod = base64_decode($pdf_codificado); //Lo decodificamos
+
+    // Creamos nuestro archivo en el servidor
+    $pdf = fopen(__DIR__ . '/etiquetas/oca-etiqueta-' . $ordenretiro . '.pdf', 'w');
+    fwrite($pdf, $pdf_decod);
+    fclose($pdf);
 }
 
 // =========================================================================
@@ -146,7 +178,7 @@ function woo_oca_get_address($order)
         $shipping_line_1 = trim($order->get_billing_address_1());
         $shipping_line_2 = trim($order->get_billing_address_2());
     }
-	
+
     $shipping_line_1 = woo_oca_remove_accents($shipping_line_1);
     $shipping_line_2 = woo_oca_remove_accents($shipping_line_2);
 
@@ -200,10 +232,10 @@ function woo_oca_get_address($order)
         $street_number = trim($res[3]);
         return array('street' => $street_name, 'number' => $street_number, 'floor' => $floor, 'apartment' => $apartment);
     }
-	
+
     // Fallback
     $fallback = $shipping_line_1;
-    if(empty($floor) && empty($apartment)){
+    if (empty($floor) && empty($apartment)) {
         $fallback .= ' ' . $shipping_line_2;
     }
     return array('street' => $fallback, 'number' => $street_number, 'floor' => $floor, 'apartment' => $apartment);
@@ -272,7 +304,8 @@ function woo_oca_get_floor_and_apt($fl_apt)
     return array('street' => $street_name, 'number' => $street_number, 'floor' => $fl_apt, 'apartment' => $apartment);
 }
 
-function woo_oca_remove_accents($str, $charset = 'utf-8') {
+function woo_oca_remove_accents($str, $charset = 'utf-8')
+{
     $str = htmlentities($str, ENT_NOQUOTES, $charset);
     $str = preg_replace('#&([A-za-z])(?:acute|cedil|caron|circ|grave|orn|ring|slash|th|tilde|uml);#', '\1', $str);
     $str = preg_replace('#&([A-za-z]{2})(?:lig);#', '\1', $str);

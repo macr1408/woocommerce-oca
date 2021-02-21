@@ -338,6 +338,12 @@ function woo_oca_check_order_after_purchase($order_id)
         $operativa = $chosen_shipping_method[1];
         $operativa = str_replace('~', '"', $operativa);
         $order->update_meta_data('oca_shipping_info', $operativa);
+        if (!is_array($operativa)) {
+            $operativa = unserialize($operativa);
+        }
+        if (!is_array($operativa)) {
+            return false;
+        }
         if ($operativa['contrareembolso']) {
             $order->update_meta_data('precio_real_envio', WC()->session->get('precio_oca_' . $operativa['code']));
         }
@@ -369,7 +375,7 @@ function woo_oca_agregar_boton_etiqueta_oca($actions, $order)
     if (empty($envio_seleccionado)) return $actions;
     $envio_seleccionado = reset($envio_seleccionado);
     $envio_seleccionado = $envio_seleccionado->get_method_id();
-    if ($order->has_status(array('completed')) && $envio_seleccionado === 'oca') {
+    if ($order->has_status(array('processing', 'completed')) && $envio_seleccionado === 'oca') {
         // Imprimimos el botón
         printf('<a class="button tips %s" href="%s" target="_blank" data-tip="%s">%s</a>', esc_attr("view eti_oca"), plugin_dir_url(__FILE__) . 'etiquetas/ver_eti.php?id=' . $order->get_meta('ordenretiro_oca') . '&nro=' . $order->get_meta('numeroenvio_oca'), esc_attr("Etiqueta"), esc_attr("Etiqueta"));
     }
